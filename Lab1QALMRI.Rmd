@@ -1,0 +1,37 @@
+---
+title: "Lab1QALMRI"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+##Question
+
+General: does retroactive inhibition (RI) occur when learning connected discourse?
+Specific: does recall of learned prose passage increase as original learning (OL) time is increased, and decrease as amount of interpolated learning (IL) practice increase?
+
+##Alternatives
+
+Null: RI does not not occur; recall increases as OL increases, but does not decrease as amount of IL increase
+Alternative 1: RI does occur; recall increases as OL increases, but decreases as IL increases
+Alternative 2: RI does not occur, recall increases as OL increases, but also increases as IL increases
+Alternative 3; RI does occur, recall does not increase as OL increases, and decreases as IL increases
+There are a few more possibilities..
+
+##Logic
+Null: as number of trials of OL increases, recall will increase, but the number of IL trials will have no effect on recall
+Alt 1: as number of trials of OL increases, recall will increase (when number of trials of IL is zero), but recall will decrease as the number of IL trials increase
+Alt 2: recall will increase as OL and IL trials increase
+Alt 3: recall does not increase as the number of OL trials increase, and will decrease as the number of IL trials increases
+
+##Method
+36 subjects took part in 4 sessions (first was a practice). Each session had OL, IL, and relearning of the OL passage using serial anticipation. The stimuli were eight short paragraphs divided into four pairs (one pair was used for practice). One paragraph from each pair was used for OL and one for IL. The IVs were the number of OL practice trials (2, 4, and 8) and the number of IL practice trials (0, 4, and 8). Dependent variable is recall during relearning trials.
+
+
+##Results
+Increasing number of OL trials was associated with increased recall
+Increasing number of IL trials was associated with decreased recall, regardless of number of OL trials
+
+##Inferences
+The researcher concludes that retention of connected discourse is subject to RI, and that such recall varies directly with degree of OL practice and inversely with degree of IL practice, thus supporting prior findings with syllables/non-connected materials as study stimuli.
