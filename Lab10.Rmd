@@ -1,0 +1,76 @@
+---
+title: "Lab 10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Chapter 20 Question
+
+```{r}
+library(tibble)
+
+bat_hat_data<-tribble(~Subject,~Phonological_Similarity,~Age,~Num_Correct, 
+        "s1","b1","a1",15,
+        "s2","b1","a1",23,
+        "s3","b1","a1",12,
+        "s4","b1","a1",16,
+        "s5","b1","a1",14,
+        "s1","b2","a1",13,
+        "s2","b2","a1",29,
+        "s3","b2","a1",10,
+        "s4","b2","a1",16,
+        "s5","b2","a1",12,
+        "s6","b1","a2",39,
+        "s7","b1","a2",31,
+        "s8","b1","a2",40,
+        "s9","b1","a2",32,
+        "s10","b1","a2",38,
+        "s6","b2","a2",29,
+        "s7","b2","a2",15,
+        "s8","b2","a2",30,
+        "s9","b2","a2",26,
+        "s10","b2","a2",30)
+
+aov_out<-aov(Num_Correct ~ Phonological_Similarity*Age + Error(Subject/Phonological_Similarity), data=bat_hat_data)
+summary(aov_out)
+
+subjects<-c(rep(c("s1","s2","s3","s4","s5"),2),
+           rep(c("s6","s7","s8","s9","s10"),2))
+Phonological_Summary<-c(rep(c("b1","b2"),each=5),2)
+Age<-rep(c("a1","a2",each=10))
+Num_Correct<-c(15,23,12,16,14,
+              13,29,10,16,12,
+              39,31,40,32,38,
+              29,15,30,26,30)
+bat_hat_data<-tibble(subjects,Phonological_Summary,Age,Num_Correct)
+```
+
+##Chapter 21 Question
+
+```{r}
+
+#Get data into R in long format
+
+Subject<-rep(c("s1","s2","s3","s4"),each=10)
+Typicality_B<-rep(rep(c("b1","b2"),each=5),4)
+Faces_A<-rep(c("a1","a2","a3","a4","a4","a5"),8)
+#"Faces_A<-rep(c("a1","a2","a3","a4","a4","a5","a6","a7","a8","a9","a10"),4)
+Centiseconds<-c(20,22,25,24,19,37,37,43,48,45,
+                9,8,21,21,21,34,35,35,37,39,
+                18,20,18,21,33,35,39,39,37,40,
+                5,14,16,22,23,38,49,51,50,52)
+
+Face_Data<-tibble(Subject,
+                  Typicality_B,
+                  Faces_A,
+                  Centiseconds)
+#Run the ANOVA
+
+aov_out<-aov(Centiseconds ~ IV)
+
+
+```
+
