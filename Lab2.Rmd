@@ -1,0 +1,84 @@
+---
+title: "Lab2"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+
+library(tibble)
+library(ggplot2)
+
+slamecka_design <- tibble(number_of_learning_trials = rep(c(2,4,8), each=6),
+                          number_of_IL = rep(rep(c(2,4,8), 2), 3),
+                          subjects = 1:18,
+                          recall = c(35,21,6,
+                                   39,31,8,
+                                   40,34,18,
+                                   52,42,26,
+                                   61,58,46,
+                                   73,66,52
+                                   )
+                          )
+
+slamecka_design$number_of_learning_trials <- as.factor(slamecka_design$number_of_learning_trials)
+
+ggplot(slamecka_design,aes(x=number_of_IL,
+                           group = number_of_learning_trials,
+                           y=recall,
+                           shape=number_of_learning_trials))+
+  geom_line(stat = "summary", fun = "mean")+
+  geom_point(stat = "summary", fun = "mean",)+
+  theme_classic()+
+  xlab("Number of Interpolated Lists")+
+  ylab("Number of Words Correct")+
+  scale_y_continuous(breaks=c(20,40,60,80), limits=c(0,80))+
+  scale_x_continuous(breaks=c(2,4,8))
+  
+  
+  
+  
+##I tried to replace the legend with labels at the end of the lines as you suggested in the solution video, and tried various ways that I found online. The following code is the closest, but for some reason it provides the labels twice when I run it in R, and gives an error when I try to knit - will have to continue playing around with it
+
+##  geom_text(data = filter(slamecka_design, number_of_IL == max(number_of_IL)),
+##              aes(label = number_of_learning_trials),
+##              hjust = 0, nudge_x = 0.1)+
+##   theme(legend.position = 'none',
+##          plot.margin = margin(0.1, 2.6, 0.1, 0.1, "cm")) 
+  
+
+
+```
+
+
+```{r}
+
+data <- tibble(reward=rep(c("A(0)","B(50)","C(1,000,000)"), each=9),
+               practice = rep(rep(c(2,4,8), each=3),3),
+               distraction = as.factor(rep(c(0,4,8),9)),
+               recall=c(5,3,1,
+                        6,4,2,
+                        7,5,3,
+                        10,8,6,
+                        11,9,7,
+                        12,10,8,
+                        15,13,11,
+                        16,14,12,
+                        17,15,13))
+
+ggplot(data,aes(x=practice, group=distraction, y=recall, shape=distraction))+
+  geom_line()+
+  geom_point()+
+  theme_classic()+
+  xlab("Number of Interpolated Lists")+
+  ylab("Number of Words Correct")+
+  scale_y_continuous(breaks=c(0,5,10,15,20), limits=c(0,20))+
+  scale_x_continuous(breaks=c(2,4,8))+
+  facet_wrap(~reward)
+
+```

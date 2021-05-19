@@ -11,5 +11,58 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 
+library(dplyr)
+
+n <- 36
+OL <- 3
+IL <- 3
+
+studydesign <- matrix(4, ncol=3, nrow=3)
+colnames(studydesign) <- c("OL_trials_2", "OL_trials_4", "OL_trials_8")
+rownames(studydesign) <- c("IL_trials_0", "IL_trials_4", "IL_trials_8")
+subjects <- 1:36
+OL <- rep(c(2,4,8),12)
+IL <- rep(c(0,4,8),each=12)  
+recall<- sample(0:20,36,replace=TRUE)
+
+studydesign_long <- tibble(subjects,OL,IL,recall)
+studydesign_long
+
+
+#mixed design
+Mixed_Design<-tribble(~subjects,~OL,~IL,
+        1,2,0,
+        1,4,4,
+        1,8,8,
+        2,4,0,
+        2,8,4,
+        2,2,8,
+        3,8,0,
+        3,2,4,
+        3,4,8,
+        4,2,4,
+        4,4,0,
+        4,8,8,
+        5,4,4,
+        5,2,8,
+        5,8,0,
+        6,8,4,
+        6,4,8,
+        6,2,0,
+        7,2,8,
+        7,4,0,
+        7,8,4,
+        8,4,8,
+        8,2,4,
+        8,8,0,
+        9,8,8,
+        9,4,4,
+        9,2,0)
+
+Mixed_Design %>%
+  group_by(OL,IL)%>%
+  count()
+
+Full_Mixed_Design <- rbind(Mixed_Design,Mixed_Design,Mixed_Design,Mixed_Design) %>% mutate(subjects=rep(1:36, each=3), recall=sample(0:20,108,replace=TRUE))
 ```
 
