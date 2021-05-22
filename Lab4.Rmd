@@ -1,0 +1,60 @@
+---
+title: "Lab4"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+chooseCRANmirror(graphics=FALSE, ind=1)
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question 1
+```{r}
+library(tibble)
+example_data <- tibble(Group = rep(c("A","B"), each = 5),
+                       DV = c(2,4,3,5,4,7,6,5,6,7))
+##t-test
+ttest<-t.test(DV~Group,var.equal=TRUE,data=example_data)
+
+##ANOVA
+ANOVA<-summary(aov(DV~Group,data=example_data))
+
+##compare p-values
+ttest$p.value
+ANOVA[[1]]$`Pr(>F)`[1]
+
+round(ttest$p.value,digits=5)==round(ANOVA[[1]]$`Pr(>F)`[1],digits=5)
+
+##prove F and t are related
+ttest$statistic^2
+ANOVA[[1]]$`F value`[1]
+
+round(ttest$statistic^2,digits=5)==round(ANOVA[[1]]$`F value`[1], digits=5)
+```
+## Question 2
+```{r}
+
+library(data.table)
+all_data <- fread("C:\\Users\\lkofl\\Documents\\School\\R Lab\\StatsLabSpring21\\Jamesetal2015Experiment2.csv")
+
+all_data$Condition <- as.factor(all_data$Condition)
+levels(all_data$Condition) <- c("Control",
+                                "Reactivation+Tetris", 
+                                "Tetris_only",
+                                "Reactivation_only")
+
+library(ggplot2)
+ggplot(all_data, aes(x=Condition, y=Days_One_to_Seven_Number_of_Intrusions))+geom_bar(stat="summary", fun="mean", position="dodge")+geom_point()
+
+anova<-aov(Days_One_to_Seven_Number_of_Intrusions~Condition, data=all_data)
+summary(anova)
+
+library(papaja)
+install.packages("backports")
+apa_print(anova)$full_result$Condition
+
+```
+
+A one-way between-subjects ANOVA was conducted to test the effect of intervention type (control, reactivation + Tetris, Tetris only, and reactivation only) on intrusive memories. The ANOVA yielded a significant main effect of intervention type; `r apa_print(anova)$full_result$Condition`

@@ -37,15 +37,15 @@ bat_hat_data<-tribble(~Subject,~Phonological_Similarity,~Age,~Num_Correct,
 aov_out<-aov(Num_Correct ~ Phonological_Similarity*Age + Error(Subject/Phonological_Similarity), data=bat_hat_data)
 summary(aov_out)
 
-subjects<-c(rep(c("s1","s2","s3","s4","s5"),2),
+Subject<-c(rep(c("s1","s2","s3","s4","s5"),2),
            rep(c("s6","s7","s8","s9","s10"),2))
-Phonological_Summary<-c(rep(c("b1","b2"),each=5),2)
-Age<-rep(c("a1","a2",each=10))
+Phonological_Similarity<-c(rep(c("b1","b2"),each=5,2)) 
+Age<-rep(c("a1","a2"),each=10)
 Num_Correct<-c(15,23,12,16,14,
               13,29,10,16,12,
               39,31,40,32,38,
               29,15,30,26,30)
-bat_hat_data<-tibble(subjects,Phonological_Summary,Age,Num_Correct)
+bat_hat_data<-tibble(Subject,Phonological_Similarity,Age,Num_Correct)
 ```
 
 ##Chapter 21 Question
@@ -56,8 +56,8 @@ bat_hat_data<-tibble(subjects,Phonological_Summary,Age,Num_Correct)
 
 Subject<-rep(c("s1","s2","s3","s4"),each=10)
 Typicality_B<-rep(rep(c("b1","b2"),each=5),4)
-Faces_A<-rep(c("a1","a2","a3","a4","a4","a5"),8)
-#"Faces_A<-rep(c("a1","a2","a3","a4","a4","a5","a6","a7","a8","a9","a10"),4)
+Faces_A<-rep(c("a1","a2","a3","a4","a5"),8)
+# "Faces_A<-rep(c("a1","a2","a3","a4","a4","a5","a6","a7","a8","a9","a10"),4)
 Centiseconds<-c(20,22,25,24,19,37,37,43,48,45,
                 9,8,21,21,21,34,35,35,37,39,
                 18,20,18,21,33,35,39,39,37,40,
@@ -69,7 +69,8 @@ Face_Data<-tibble(Subject,
                   Centiseconds)
 #Run the ANOVA
 
-aov_out<-aov(Centiseconds ~ IV)
+aov_out<-aov(Centiseconds~(Subject+Faces_A%in%Typicality_B+Typicality_B+Typicality_B:Subject),data=Face_Data)
+summary(aov_out)
 
 
 ```
