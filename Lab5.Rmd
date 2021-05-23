@@ -1,0 +1,102 @@
+---
+title: "Lab5"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Question 1 - produce F value that is lower than the critical value
+
+```{r}
+
+library(tibble)
+library(ggplot2)
+
+levels <- 3
+n_per_level <- 10
+
+critical_value<-qf(.95,2,27)
+
+for(i in 1:1000){
+random_data <- tibble(subjects = 1:(levels*n_per_level),
+                      IV = as.factor(rep(1:levels, each = n_per_level)),
+                      DV = rnorm(levels*n_per_level, 0, 1))
+aov.out <- aov(DV ~ IV, data = random_data)
+simulated_F <- summary(aov.out)[[1]]$`F value`[1]
+
+
+if (simulated_F<critical_value) break}
+
+summary(aov.out)
+
+ggplot(random_data,aes(x=IV,y=DV))+geom_bar(stat="summary",fun="mean")+geom_point()
+
+```
+
+Since we are simulating a dataset that could be produced by the null hypothesis, with an F value that is smaller than the critical value, we therefore accept the null, and we would be correct in doing so. 
+
+##Question 2 - produce F value that is higher than the critical value
+
+```{r}
+
+library(tibble)
+library(ggplot2)
+
+levels <- 3
+n_per_level <- 10
+
+critical_value<-qf(.95,2,27)
+
+for(i in 1:1000){
+random_data <- tibble(subjects = 1:(levels*n_per_level),
+                      IV = as.factor(rep(1:levels, each = n_per_level)),
+                      DV = rnorm(levels*n_per_level, 0, 1))
+aov.out <- aov(DV ~ IV, data = random_data)
+simulated_F <- summary(aov.out)[[1]]$`F value`[1]
+
+
+if (simulated_F>critical_value) break}
+
+simulated_F>critical_value
+
+summary(aov.out)
+
+ggplot(random_data,aes(x=IV,y=DV))+geom_bar(stat="summary",fun="mean")+geom_point()
+
+```
+
+Since we are simulating a dataset that could be produced by the null hypothesis, with an F value that is higher than the critical value, we therefore reject the null, however we would be incorrect in doing so - this is a type I error. 
+
+##Question 3
+
+```{r}
+library(tibble)
+library(ggplot2)
+
+levels <- 3
+n_per_level <- 10
+
+save_F_values <- length(1000)
+
+for(i in 1:1000){
+random_data <- tibble(subjects = 1:(levels*n_per_level),
+                      IV = as.factor(rep(1:levels, each = n_per_level)),
+                      DV = rt(levels*n_per_level, 1)
+                      )
+aov.out <- aov(DV ~ IV, data = random_data)
+simulated_F <- summary(aov.out)[[1]]$`F value`[1]
+save_F_values[i] <- simulated_F
+}
+
+
+
+F_comparison <- tibble(type = rep(c("analytic","simulated_rt"), each = 1000),
+                        F_value = c(rf(1000,levels-1,(levels*n_per_level)-levels),save_F_values))
+
+ggplot(F_comparison, aes(x=F_value, color=type))+
+  geom_freqpoly(bins=50)
+
+
+```

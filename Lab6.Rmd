@@ -1,0 +1,116 @@
+---
+title: "Lab6"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Question 1a
+```{r}
+
+A<-replicate(10000,sum(rbinom(20,1,.05)))
+hist(A)
+length(A[A>0])/10000
+
+B<-replicate(10000,sum(rbinom(50,1,.05)))
+hist(B)
+length(B[B>0])/10000
+
+```
+
+##Question 1b
+
+```{r}
+
+C<-replicate(10000,sum(rbinom(20,3,.05)))
+length(C[C>0])/10000
+
+```
+
+##Question 2
+```{r}
+library(tibble)
+
+#method 1
+
+p_values<-c()
+
+for(i in 1:10000){
+IV<-rep(1:2,each=20)
+DV<-c(rnorm(20,0,1),rnorm(20,0,1))
+data1<-tibble(IV,DV)
+
+p_values[i]<-t.test(DV~IV,var.equal=TRUE,data=data1)$p.value
+}
+
+hist(p_values)
+
+#method 2
+
+p_values2<-replicate(10000,t.test(rnorm(20,0,1),rnorm(20,0,1),var.equal=TRUE)$p.value)
+
+hist(p_values2)
+```
+
+##Question 3
+```{r}
+
+p_values<-replicate(10000,t.test(rnorm(20,0.5,1),rnorm(20,0,1),var.equal=TRUE)$p.value)
+
+hist(p_values)
+
+
+```
+
+##Question 4
+
+```{r}
+library(tibble)
+
+p_values2<-c()
+
+for(i in 1:1000){
+IV<-factor(rep(1:4,each=20))
+DV<-c(rnorm(20,0.5,1),rnorm(20,0,1),rnorm(20,0,1),rnorm(20,0,1))
+data2<-tibble(IV,DV)
+
+contrast2<-c(3,-1,-1,-1)
+contrasts(data2$IV)<-contrast2
+
+aov.out<-aov(DV~IV,data2)
+
+save<-summary.aov(aov.out, split=list(IV=list("contrast2"=1)))
+
+p_values2[i]<-save[[1]]$`Pr(>F)`[2]}
+
+hist(p_values2)
+
+
+```
+
+##Question 5
+```{r}
+
+Omnibus_p_values<-c()
+Contrast_p_values<-c()
+
+for(i in 1:1000){
+IV<-factor(rep(1:4,each=20))
+DV<-c(rnorm(20,0,1),rnorm(20,0,1),rnorm(20,0,1),rnorm(20,0,1))
+data2<-tibble(IV,DV)
+
+contrast2<-c(3,-1,-1,-1)
+contrasts(data2$IV)<-contrast2
+
+aov.out<-aov(DV~IV,data2)
+
+save<-summary.aov(aov.out, split=list(IV=list("contrast2"=1)))
+
+Omnibus_p_values[i]<-save[[1]]$`Pr(>F)`[1]
+Contrast_p_values[i]<-save[[1]]$`Pr(>F)`[2]}
+
+length(Omnibus_p_values[Omnibus_p_values<.05])/1000
+length(Contrast_p_values[Contrast_p_values<.05])/1000
+```
