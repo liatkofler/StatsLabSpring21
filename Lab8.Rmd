@@ -1,0 +1,121 @@
+---
+title: "Lab8"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## question 1A
+```{r}
+
+library(tibble)
+library(ggplot2)
+library(patchwork)
+
+
+data<-tibble(IVA=c(1,1,2,2),IVB=c(1,2,1,2),DV=c(0,0,.5,.25))
+ggplot(data,aes(y=DV,x=IVA,linetype=as.factor(IVB)))+geom_line()+geom_point()
+```
+
+## question 1B
+```{r}
+
+N <- 56
+
+A_pvalue <- c()
+
+for(i in 1:1000){
+  IVA <- rep(rep(c("1","2"), each=2),N)
+  IVB <- rep(rep(c("1","2"), 2),N)
+  DV <- c(replicate(N,c(rnorm(1,0,1), 
+                        rnorm(1,0,1), 
+                        rnorm(1,.5,1), 
+                        rnorm(1,.25,1))))
+  sim_df <- data.frame(IVA,IVB,DV)
+
+  aov_results <- summary(aov(DV~IVA*IVB, sim_df))
+  A_pvalue[i]<-aov_results[[1]]$`Pr(>F)`[1]}
+
+
+length(A_pvalue[A_pvalue<0.05])/1000
+
+
+##Alternate
+
+A_pvalue2 <- c()
+
+for(i in 1:1000){
+  
+  sim_df2<-tibble(
+    IVA2 = rep(rep(c("1","2"), each=2),N),
+    IVB2 = rep(rep(c("1","2"), 2),N),
+    DV2 = rnorm(4*N,c(0,0,.5,.25),1))
+
+  aov_results2 <- summary(aov(DV2~IVA2*IVB2, sim_df2))
+  A_pvalue2[i]<-aov_results2[[1]]$`Pr(>F)`[1]}
+
+
+length(A_pvalue2[A_pvalue2<0.05])/1000
+
+
+```
+
+## question 1C
+```{r}
+
+N <- 500
+
+AB_pvalue <- c()
+
+for(i in 1:1000){
+  
+  sim_df3<-tibble(
+    IVA3 = rep(rep(c("1","2"), each=2),N),
+    IVB3 = rep(rep(c("1","2"), 2),N),
+    DV3 = rnorm(4*N,c(0,0,.5,.25),1))
+
+  aov_results3 <- summary(aov(DV3~IVA3*IVB3, sim_df3))
+  AB_pvalue[i]<-aov_results3[[1]]$`Pr(>F)`[3]}
+
+
+length(AB_pvalue[AB_pvalue<0.05])/1000
+
+```
+
+## question B1
+```{r}
+
+increments<-seq(25,800,25)
+power_est<-c()
+
+for(si in 1:length(increments)) {
+
+N <- increments[si]
+AB_pvalue <- c()
+
+for(i in 1:1000){
+  
+  sim_df3<-tibble(
+    IVA3 = rep(rep(c("1","2"), each=2),N),
+    IVB3 = rep(rep(c("1","2"), 2),N),
+    DV3 = rnorm(4*N,c(0,0,.5,.25),1))
+
+  aov_results3 <- summary(aov(DV3~IVA3*IVB3, sim_df3))
+  AB_pvalue[i]<-aov_results3[[1]]$`Pr(>F)`[3]}
+
+power_est[si]<-length(AB_pvalue[AB_pvalue<0.05])/1000
+}
+
+Power_curve<-tibble(increments,power_est)
+ggplot(Power_curve, 
+       aes(x=increments,y=power_est))+
+        geom_point()+
+        geom_line()+
+        scale_x_continuous(breaks=seq(25,800,50))+
+        scale_y_continuous(breaks=seq(0,1,.1))+
+        theme_classic(base_size=10)+
+        geom_hline(yintercept=.8)
+```

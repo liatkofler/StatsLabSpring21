@@ -1,0 +1,198 @@
+---
+title: "Lab7"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## question 1
+
+A classic example depicting an interaction is the taste test example - which condiment would you like to have on your food, chocolate syrup or ketchup? Your answer to this question most likely depends on which food you putting the condiment on.
+We can test people's enjoyment of food using a 2x2 factorial design with two independent variables with two levels each. One independent variable is condiment type, with the two conditions of chocolate syrup and ketchup. The second independent variable is food type, with two conditions of ice cream and hot dog. The dependent variable is level of enjoyment, with a higher score indicated greater enjoyment of the food. 
+We can run an ANOVA test to examine three effects: the main effect of condiment type on enjoyment, the main effect of food type on enjoyment, and the effect of the interaction between condiment and food type on enjoyment.
+A main effect of one independent variable on the dependent variable is the effect of that independent variable irrespective of the level of the other independent variable. For example, the main effect of food type on enjoyment will tell us whether our sample has a preference for one type of food over the other (between our options of ice cream and hot dog). We can hypothesize that there would not be a significant effect of food type on enjoyment; some people have a sweet tooth and generally prefer desserts, while others would generally enjoy a hot dog more than ice cream (this would be the wrong choice, if you ask me, but alas - each to their own), while others may enjoy both equally. Main effects can be easily depicted in a bar graph. Since we are hypothsizing an insignificant main effect of food type on enjoyment, we would expect the enjoyment means of ice cream and hot dogs to be similar, as follows:
+
+```{r}
+library(ggplot2)
+FoodTypeMainEffect<-data.frame(FoodType = c("ice cream","hot dog"),
+                Enjoyment = c(7.1,7.3))
+ggplot(FoodTypeMainEffect,aes(x=FoodType,y=Enjoyment,fill=FoodType))+
+  geom_bar(stat="identity")+
+  theme(legend.position = "none")
+```
+
+With regards to the main effect of the condiment type, if you are giving the option between ketchup and chocolate syrup, without being given any food to put it on (since we are looking at the main effect, we are essentially "ignoring" the food type!), one can imagine that most people would probably enjoy chocolate syrup on its own, while not enjoying ketchup on its own as much. In this case, we would expect a significant main effect of condiment type on enjoyment, with a higher enjoyment rating for chocolate syrup over ketchup:
+
+```{r}
+CondimentTypeMainEffect<-data.frame(CondimentType = c("chocolate syrup","ketchup"),Enjoyment = c(10,5))
+ggplot(CondimentTypeMainEffect,aes(x=CondimentType,y=Enjoyment,fill=CondimentType))+
+  geom_bar(stat="identity")+
+  theme(legend.position = "none")
+```
+
+
+Lastly, we can attempt to predict the outcome of the interaction effect. The interaction effect examines whether the effect of one independent variable is depedent on the level of the other independent variable. In our case, we can ask the question: does enjoyment of a condiment type depend on the food type? We can imagine that one would greatly enjoy ketchup on a hot dog and chocolate syrup on ice cream, while chocolate syrup on a hot dog, or ketchup on ice cream, would not be the most appealing combinations to our participant sample (with the probable exception of a few outliers). This would indicate a significant interaction effect - one's enjoyment of a condiment in this case would depend on the type of food. Interactions are often depicted using a line graph. We would expect the interaction effect in our experiment to look as follows:
+
+```{r}
+InteractionEffect<-data.frame(
+  FoodType = c("hot dog","hot dog","ice cream","ice cream"),
+  CondimentType = c("chocolate syrup","ketchup","chocolate syrup","ketchup"),
+  Enjoyment = c(3.5,7.5,8,4.5))
+ggplot(InteractionEffect,aes(x=FoodType,y=Enjoyment,group=CondimentType,color=CondimentType))+
+  geom_line()
+```
+
+## question 2
+```{r}
+
+library(data.table)
+all_data <- fread("C:\\Users\\lkofl\\Documents\\School\\R Lab\\StatsLab1\\open_data/stroop_stand.csv")
+
+RTs <- c(as.numeric(unlist(all_data[,1])),
+         as.numeric(unlist(all_data[,2])),
+         as.numeric(unlist(all_data[,3])),
+         as.numeric(unlist(all_data[,4])))
+
+Congruency <- rep(rep(c("Congruent","Incongruent"),each=50),2)
+Posture <- rep(c("Stand","Sit"),each=100)
+Subject <- rep(1:50,4)
+
+stroop_df <- data.frame(Subject,Congruency,Posture,RTs)
+
+
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+
+stroop_long<- gather(all_data, key=Condition, value=RTs, 
+                     congruent_stand, incongruent_stand,
+                     congruent_sit, incongruent_sit)
+new_columns <- tstrsplit(stroop_long$Condition, "_", names=c("Congruency","Posture"))
+stroop_long <- cbind(stroop_long,new_columns)
+stroop_long <- cbind(stroop_long,Subject=rep(1:50,4))
+
+plot_means <- stroop_long %>%
+            group_by(Congruency,Posture) %>%
+            summarise(mean_RT = mean(RTs),
+                      SEM = sd(RTs)/sqrt(length(RTs)))
+
+ggplot(plot_means, aes(x=Posture, y=mean_RT, group=Congruency, fill=Congruency))+
+  geom_bar(stat="identity", position="dodge")+
+  geom_errorbar(aes(ymin=mean_RT-SEM, ymax=mean_RT+SEM), 
+                position=position_dodge(width=0.9),
+                width=.2)+
+  theme_classic()+
+  coord_cartesian(ylim=c(700,1000))
+
+aov_out<-aov(RTs ~ Congruency*Posture, stroop_long)
+summary_out<-summary(aov_out)
+summary_out
+
+print(model.tables(aov_out,"means"), format="markdown")
+
+```
+We conducted a 2x2 between-subjects ANOVA to test the main effects of congruency and posture on reaction time (RT), as well as to examine the interaction effect of congruency x posture on RT.
+
+We found a significant main effect of congruency; F(1,196) = 43.734, p < .001. The mean RT for the congruent condition (M=814.9 ms) was faster than the mean RT for the incongruent condition (M=922.3 ms).
+
+There was no main effect of posture on RT; F(1,196) = 2.449, p > .05. There were no statistically significant differences between the RT for the standing (M=855.9 ms) and sitting (M=881.4 ms) conditions.
+
+Lastly, we did not find a significant interaction effect, F(1,196) = .497, p > .05. There were no differences between standing (M = 808.0 ms) and sitting (M = 821.9 ms) for the congruent condition, as well as no differences between standing (M = 903.9 ms) and sitting (M = 940.8 ms) for the incongruent condition.
+
+
+## question 3
+
+```{r 10bar22, fig.cap="8 Example patterns for means for each of the possible kinds of general outcomes in a 2x2 design "}
+p1<- data.frame(IV1 = c("A","A","B","B"),
+                IV2 = c("1","2","1","2"),
+                means = c(7,7,7,7))
+p2<- data.frame(IV1 = c("A","A","B","B"),
+                IV2 = c("1","2","1","2"),
+                means = c(2,2,14,14))
+p3<- data.frame(IV1 = c("A","A","B","B"),
+                IV2 = c("1","2","1","2"),
+                means = c(10,13,5,2))
+p4<- data.frame(IV1 = c("A","A","B","B"),
+                IV2 = c("1","2","1","2"),
+                means = c(5,10,10,15))
+p5<- data.frame(IV1 = c("A","A","B","B"),
+                IV2 = c("1","2","1","2"),
+                means = c(10,18,5,7))
+p6<- data.frame(IV1 = c("A","A","B","B"),
+                IV2 = c("1","2","1","2"),
+                means = c(10,2,10,2))
+p7<- data.frame(IV1 = c("A","A","B","B"),
+                IV2 = c("1","2","1","2"),
+                means = c(2,12,5,9))
+p8<- data.frame(IV1 = c("A","A","B","B"),
+                IV2 = c("1","2","1","2"),
+                means = c(12,4,4,12))
+all_22s <- rbind(p1,p2,p3,p4,p5,p6,p7,p8)
+type <- c(rep("~1, ~2, ~1x2",4),
+          rep("1, ~2, ~1x2",4),
+          rep("1, ~2, 1x2",4),
+          rep("1, 2, ~1x2",4),
+          rep("1, 2, 1x2",4),
+          rep("~1, 2, ~1x2",4),
+          rep("~1, 2, 1x2",4),
+          rep("~1, ~2, 1x2",4))
+type<-as.factor(type)
+all_22s <- cbind(all_22s,type)
+ggplot(all_22s, aes(x=IV1, y=means, group=IV2, fill=IV2))+
+  geom_bar(stat="identity", position="dodge")+
+  theme_classic()+
+  facet_wrap(~type, nrow=2)+
+  theme(legend.position = "top")
+                             
+
+
+
+```
+
+## question 4
+```{r}
+
+Simulation<-rbinom(10000,7,.05)
+length(Simulation[Simulation>0])/10000
+
+n <- 12
+factorial_data <- tibble(A = factor(rep(c("L1","L2"), each = n)),
+                         B = factor(rep(rep(c("L1","L2"), each = n/2),2)),
+                         C = factor(rep(c("L1","L2"), n)),
+                         DV = rnorm(n*2,0,1))
+
+summary(aov(DV ~ A*B*C, data = factorial_data))
+
+
+save_sim <- tibble()
+
+for(i in 1:10000){
+
+
+ n <- 12
+factorial_data <- tibble(A = factor(rep(c("L1","L2"), each = n)),
+                         B = factor(rep(rep(c("L1","L2"), each = n/2),2)),
+                         C = factor(rep(c("L1","L2"), n)),
+                         DV = rnorm(n*2,0,1))
+  
+  output <- summary(aov(DV ~ A*B*C, data = factorial_data))
+
+
+  sim_tibble <- tibble(p_vals = output[[1]]$`Pr(>F)`[1:7],
+                       effect = c("A","B","C","AxB","AxC","BxC","AxBxC"),
+                       sim = rep(i,7))
+
+  #add the saved values to the overall tibble
+  save_sim <-rbind(save_sim,sim_tibble)
+}
+
+type_I_errors<-save_sim%>%
+  filter(p_vals<.05)%>%
+  group_by(sim)%>%
+  count()
+
+dim(type_I_errors)[1]/10000
+```
+
