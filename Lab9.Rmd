@@ -9,7 +9,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Question 1 
 ```{r}
-
+library(ggplot2)
 library(tibble)
 library(dplyr)
 
