@@ -1,0 +1,222 @@
+---
+title: "Lab9"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question 1 
+```{r}
+
+library(tibble)
+library(dplyr)
+
+data1<-tibble(subjects=rep(1:6,each=5),
+              IV=rep(c("Down2","Down1","Control","Up1","Up2"),6),
+              DV=rnorm(6*5,c(-2,-1,0,1,2),1))%>%
+  mutate(DV=DV+rep(rnorm(6,0,1),each=5))
+
+data1$IV<-factor(data1$IV,levels=c("Down2","Down1","Control","Up1","Up2"))
+data1$subjects<-as.factor(data1$subjects)
+
+ggplot(data1,aes(x=IV,y=DV,group=subjects,color=subjects))+geom_point()+geom_line()
+
+```
+
+## Question 2 
+```{r}
+
+save_p<-c()
+
+for (i in 1000){
+
+data2<-tibble(subjects=rep(1:6,each=5),
+              IV=rep(c("Down2","Down1","Control","Up1","Up2"),6),
+              DV=rnorm(6*5,c(-.2,-.1,0,.1,.2),1))%>%
+  mutate(DV=DV+rep(rnorm(6,0,1),each=5))
+
+data2$IV<-factor(data2$IV,levels=c("Down2","Down1","Control","Up1","Up2"))
+data2$subjects<-as.factor(data2$subjects)
+
+save_aov<-summary(aov(DV~IV+Error(subjects),data2))
+save_p[i]<-save_aov[2]$`Error: Within`[[1]]$`Pr(>F)`[1]}
+
+length(save_p[save_p<.05])/1000
+
+#my output is off for some reason I think, even though the code works fine. The numbers seem to be too high in every run
+```
+
+## Question 3
+```{r}
+
+godden_baddeley <- tribble(~Subjects,~LearningPlace,~TestingPlace,~Recall,
+        "s1","On Land","On Land",34,
+        "s2","On Land","On Land",37,
+        "s3","On Land","On Land",27,
+        "s4","On Land","On Land",43,
+        "s5","On Land","On Land",44,
+        "s1","On Land","Under Sea",18,
+        "s2","On Land","Under Sea",21,
+        "s3","On Land","Under Sea",25,
+        "s4","On Land","Under Sea",37,
+        "s5","On Land","Under Sea",34,
+        "s1","Under Sea","On Land",14,
+        "s2","Under Sea","On Land",21,
+        "s3","Under Sea","On Land",31,
+        "s4","Under Sea","On Land",27,
+        "s5","Under Sea","On Land",32,
+        "s1","Under Sea","Under Sea",22,
+        "s2","Under Sea","Under Sea",25,
+        "s3","Under Sea","Under Sea",33,
+        "s4","Under Sea","Under Sea",33,
+        "s5","Under Sea","Under Sea",42
+        )
+
+# convert IVs to factors
+godden_baddeley <- godden_baddeley %>%
+  mutate(Subjects = as.factor(Subjects),
+         LearningPlace = as.factor(LearningPlace),
+         TestingPlace = as.factor(TestingPlace))
+
+
+#main effect of learning place
+
+library(dplyr)
+
+LearningPlace_means<-godden_baddeley%>%
+  group_by(Subjects,LearningPlace)%>%
+  summarize(mean_recall=mean(Recall))
+
+t.test(mean_recall~LearningPlace,paired=TRUE,data=LearningPlace_means)
+
+land<-LearningPlace_means%>%
+  filter(LearningPlace=="On Land")%>%
+  select(mean_recall)
+
+sea<-LearningPlace_means%>%
+  filter(LearningPlace=="Under Sea")%>%
+  select(mean_recall)
+
+t.test(land$mean_recall - sea$mean_recall,mu=0)
+
+
+#main effect of testing place
+
+TestingPlace_means<-godden_baddeley%>%
+  group_by(Subjects,TestingPlace)%>%
+  summarize(mean_recall=mean(Recall))
+
+t.test(mean_recall~TestingPlace,paired=TRUE,data=TestingPlace_means)
+
+land<-TestingPlace_means%>%
+  filter(TestingPlace=="On Land")%>%
+  select(mean_recall)
+
+sea<-TestingPlace_means%>%
+  filter(TestingPlace=="Under Sea")%>%
+  select(mean_recall)
+
+t.test(land$mean_recall - sea$mean_recall,mu=0)
+
+#Interaction
+
+LandLand<-godden_baddeley%>%
+  filter(LearningPlace=="On Land", TestingPlace=="On Land")%>%
+  pull(Recall)
+
+LandSea<-godden_baddeley%>%
+  filter(LearningPlace=="On Land", TestingPlace=="Under Sea")%>%
+  pull(Recall)
+
+LandLand-LandSea
+
+SeaLand<-godden_baddeley%>%
+  filter(LearningPlace=="Under Sea", TestingPlace=="On Land")%>%
+  pull(Recall)
+
+SeaSea<-godden_baddeley%>%
+  filter(LearningPlace=="Under Sea", TestingPlace=="Under Sea")%>%
+  pull(Recall)
+
+SeaLand-SeaSea
+
+t.test((LandLand-LandSea)-(SeaLand-SeaSea),mu=0)
+
+aov_out <- aov(Recall ~ LearningPlace*TestingPlace + Error(Subjects/(LearningPlace*TestingPlace)), godden_baddeley)
+summary(aov_out)
+
+```
+## Question 4 (bonus)
+```{r}
+library(tidyr)
+
+sphericity <- tribble(~S, ~a1, ~a2, ~a3, ~a4,
+        "s1",76,64,34,26,
+        "s2",60,48,46,30,
+        "s3",58,34,32,28,
+        "s4",46,46,32,28,
+        "s5",30,18,36,28)
+
+sphericity<-pivot_longer(sphericity, cols=!S, names_to="IV", values_to="DV")
+
+ggplot(sphericity, aes(x=IV, y=DV, color=S, group=S))+geom_point()+geom_line()
+```
+
+## Question 5 (bonus)
+```{r}
+
+sphericity <- tribble(~S, ~a1, ~a2, ~a3, ~a4,
+        "s1",76,64,34,26,
+        "s2",60,48,18,10,
+        "s3",58,46,16,8,
+        "s4",46,34,4,-4,
+        "s5",30,18,-12,-20)
+
+sphericity<-pivot_longer(sphericity, cols=!S, names_to="IV", values_to="DV")
+
+ggplot(sphericity, aes(x=IV, y=DV, color=S, group=S))+geom_point()+geom_line()
+```
+
+## Question 6 (bonus)
+```{r}
+
+sphericity <- tribble(~S, ~a1, ~a2, ~a3, ~a4,
+        "s1",76,64,34,26,
+        "s2",60,48,18,10,
+        "s3",58,46,16,8,
+        "s4",46,34,4,-4,
+        "s5",30,18,-12,-20)
+
+textbook<-sphericity
+
+## selecting the table of values in each column
+textbook[,2:5]
+
+## computing the covariation matrix
+cov(textbook[,2:5])
+
+## ta
+colMeans(cov(textbook[,2:5]))
+#>  a1  a2  a3  a4 
+#> 138 138  14  -2
+
+## sa-s
+colMeans(cov(textbook[,2:5])) - mean(cov(textbook[,2:5]))
+#>  a1  a2  a3  a4 
+#>  66  66 -58 -74
+
+## double-centering
+
+cov_matrix <- cov(textbook[,2:5])
+col_mean_matrix <- cov_matrix*0 + colMeans(cov_matrix)
+row_mean_matrix <- t(cov_matrix*0 + rowMeans(cov_matrix))
+dc_matrix <- cov_matrix - col_mean_matrix -row_mean_matrix + mean(cov_matrix)
+
+## greenhouse-geisser
+sum(diag(dc_matrix))^2 / ((dim(dc_matrix)[1]-1)*sum(dc_matrix^2))
+#> [1] 0.4459613
+```
+
+
